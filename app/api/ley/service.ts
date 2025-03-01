@@ -20,6 +20,7 @@ interface Ley {
   rowsTotal: number;
 }
 
+// TODO: Make it work on serverless deployment
 // Function to fetch HTML content from a URL using Puppeteer
 async function fetchHtml(url: string): Promise<string> {
   try {
@@ -88,6 +89,7 @@ function cleanHtml(html: string): string {
 }
 
 // Extract this function to be cached separately
+// TODO: Improve the prompt to get more accurate with a lot less html noise
 async function extractLawData(link: string, perParId: number, pleyNum: number) {
   // Step 1: Fetch the raw HTML from the website
   const rawHtml = await fetchHtml(link).catch((error) => {
@@ -110,6 +112,7 @@ async function extractLawData(link: string, perParId: number, pleyNum: number) {
   console.log("markdown", markdown);
 
   // Step 3: Extract structured data using generateObject
+  // TODO: Test simpler prompts to see if we can get more accurate results
   const { object: summary } = await generateObject({
     model: openai("gpt-4o"),
     prompt: `Given the markdown extracted from the website ${link}, extract the summary of the law project and structure it into a json object with the following fields: id, numero, titulo, fechaPresentacion, periodo, legislatura, proponente, sumilla, autor, coautores, grupoParliamentario, estado, urlOriginal, urlPdf. 
@@ -129,12 +132,13 @@ async function extractLawData(link: string, perParId: number, pleyNum: number) {
       urlOriginal: z.string(),
     }),
   });
-
+  //TODO: Store extracted text from pdf of the law project
   console.log("summary", summary);
   return summary;
 }
 
 // Create a cached version of the extraction function
+// TODO: Cache key per perParId and pleyNum instead of single key for all
 const getCachedLawData = unstable_cache(
   async (link: string, perParId: number, pleyNum: number) => {
     return extractLawData(link, perParId, pleyNum);
