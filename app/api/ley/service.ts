@@ -1,5 +1,3 @@
-"use server"
-
 import jsonData from "./data.json";
 import { generateObject, generateText } from "ai";
 import { openai } from "@ai-sdk/openai";
@@ -29,8 +27,11 @@ async function fetchHtml(url: string): Promise<string> {
     const browser = await puppeteer.launch({
       args: isLocal ? puppeteer.defaultArgs() : chromium.args,
       defaultViewport: chromium.defaultViewport,
-      executablePath: process.env.CHROME_EXECUTABLE_PATH || (await chromium.executablePath("https://92d2r591kb.ufs.sh/f/bSTCpJUfVu1pM6lUy0eIk3QhXHzqyW1fN574Ko8YSvjl02sM")),
-      headless: chromium.headless as any,
+      executablePath:
+        process.env.CHROME_EXECUTABLE_PATH ||
+        (await chromium.executablePath(
+          "https://nbvizhbtxgtljz7i.public.blob.vercel-storage.com/chromium-v132.0.0-pack-jSz8hghChyCmKBdG58QtIxLP6y6K5i.tar"
+        )),
     });
 
     const page = await browser.newPage();
@@ -42,13 +43,13 @@ async function fetchHtml(url: string): Promise<string> {
     // Extract only the body content using page.evaluate
     const bodyContent = await page.evaluate(() => {
       // Remove scripts from the DOM before getting innerHTML
-      const scripts = document.querySelectorAll('script');
-      scripts.forEach(script => script.remove());
-      
+      const scripts = document.querySelectorAll("script");
+      scripts.forEach((script) => script.remove());
+
       // Remove styles from the DOM
-      const styles = document.querySelectorAll('style');
-      styles.forEach(style => style.remove());
-      
+      const styles = document.querySelectorAll("style");
+      styles.forEach((style) => style.remove());
+
       // Get the body content
       return document.body.innerHTML;
     });
@@ -63,36 +64,41 @@ async function fetchHtml(url: string): Promise<string> {
 
 // Function to clean HTML by removing common noise elements
 function cleanHtml(html: string): string {
-  return html
-    // Remove comments
-    .replace(/<!--[\s\S]*?-->/g, '')
-    // Remove most inline styles
-    .replace(/ style="[^"]*"/g, '')
-    // Remove common CSS classes
-    .replace(/ class="[^"]*"/g, '')
-    // Remove data attributes
-    .replace(/ data-[^=]*="[^"]*"/g, '')
-    // Remove empty attributes
-    .replace(/ [a-z-]+=""/g, '')
-    // Remove any remaining script tags (in case they were added dynamically)
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    // Remove any remaining style tags
-    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
-    // Collapse multiple spaces
-    .replace(/\s{2,}/g, ' ')
-    // Remove unnecessary line breaks
-    .replace(/>\s+</g, '><');
+  return (
+    html
+      // Remove comments
+      .replace(/<!--[\s\S]*?-->/g, "")
+      // Remove most inline styles
+      .replace(/ style="[^"]*"/g, "")
+      // Remove common CSS classes
+      .replace(/ class="[^"]*"/g, "")
+      // Remove data attributes
+      .replace(/ data-[^=]*="[^"]*"/g, "")
+      // Remove empty attributes
+      .replace(/ [a-z-]+=""/g, "")
+      // Remove any remaining script tags (in case they were added dynamically)
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+      // Remove any remaining style tags
+      .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
+      // Collapse multiple spaces
+      .replace(/\s{2,}/g, " ")
+      // Remove unnecessary line breaks
+      .replace(/>\s+</g, "><")
+  );
 }
 
 // Extract this function to be cached separately
 async function extractLawData(link: string, perParId: number, pleyNum: number) {
   // Step 1: Fetch the raw HTML from the website
-  const rawHtml = await fetchHtml(link);
-  
+  const rawHtml = await fetchHtml(link).catch((error) => {
+    console.error("Error fetching HTML:", error);
+    return "An error occurred while fetching the HTML";
+  });
+
   // Step 1.5: Clean the HTML to remove basic noise
   const cleanedHtml = cleanHtml(rawHtml);
   console.log("cleanedHtml length:", cleanedHtml.length);
-  
+
   // Step 2: Use AI to clean up the HTML and convert to markdown
   const { text: markdown } = await generateText({
     model: openai("gpt-4o-mini"),
@@ -123,7 +129,7 @@ async function extractLawData(link: string, perParId: number, pleyNum: number) {
       urlOriginal: z.string(),
     }),
   });
-  
+
   console.log("summary", summary);
   return summary;
 }
@@ -149,7 +155,7 @@ export async function getData() {
     // Use the cached function instead of inline processing
     return getCachedLawData(link, ley.perParId, ley.pleyNum);
   });
-  
+
   const response = await Promise.all(result);
   return response;
 }
