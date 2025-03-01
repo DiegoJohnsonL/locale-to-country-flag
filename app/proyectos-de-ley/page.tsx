@@ -3,6 +3,7 @@ import { columns } from "./columns"
 import { getData } from "@/app/api/ley/service"
 
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60;
 
 export default async function ProyectosDeLeyPage() {
   const data = await getData()
