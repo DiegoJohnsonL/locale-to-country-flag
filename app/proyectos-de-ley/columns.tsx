@@ -59,7 +59,7 @@ export const columns: ColumnDef<ProyectoDeLey>[] = [
     accessorKey: "titulo",
     header: "Título",
     cell: ({ row }) => (
-      <div className="max-w-[500px] truncate font-medium">
+      <div className="whitespace-normal break-words">
         {row.getValue("titulo")}
       </div>
     ),
@@ -76,7 +76,7 @@ export const columns: ColumnDef<ProyectoDeLey>[] = [
     accessorKey: "sumilla",
     header: "Resumen",
     cell: ({ row }) => (
-      <div className="max-w-[300px] truncate">
+      <div className="whitespace-normal break-words">
         {row.getValue("sumilla")}
       </div>
     ),
